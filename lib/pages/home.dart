@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:socialapp/data/data.dart';
+import "package:cloud_firestore/cloud_firestore.dart";
+
+final GoogleSignIn googleSignIn = GoogleSignIn();
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -10,6 +14,30 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool _isAuth = false;
+  var firestoreDb = FirebaseFirestore.instance.collection("users").snapshots();
+
+  @override
+  void initState() {
+    super.initState();
+    googleSignIn.onCurrentUserChanged.listen((account) {
+      print("this is the $account");
+      if (account != null) {
+        print("User signed in $account");
+        setState(() {
+          _isAuth = true;
+        });
+      } else {
+        setState(() {
+          print("Sign in failed : $account");
+          _isAuth = false;
+        });
+      }
+    });
+  }
+
+  login() {
+    googleSignIn.signIn();
+  }
 
   Widget buildAuthScreen() {
     return const Text("Authenticated");
@@ -42,7 +70,7 @@ class _HomeState extends State<Home> {
               ),
             ),
             GestureDetector(
-              onTap: () => print("sign in tapped"),
+              onTap: login,
               child: Container(
                 width: 260.0,
                 height: 60.0,
@@ -62,6 +90,27 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return _isAuth ? buildAuthScreen() : buildUnAuthScreen();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("FireStore app"),
+      ),
+      body: StreamBuilder(
+        stream: firestoreDb,
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            return const CircularProgressIndicator();
+          } else {
+            return ListView.builder(
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (BuildContext context, int index) {
+                return const Text("items");
+              },
+            );
+          }
+        },
+      ),
+    );
+
+    // return _isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }

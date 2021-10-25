@@ -18,11 +18,14 @@ class _HomeState extends State<Home> {
   Widget buildUnAuthScreen() {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [Colors.teal, Colors.purple],
+            colors: [
+              Theme.of(context).colorScheme.secondary,
+              Theme.of(context).primaryColor,
+            ],
           ),
         ),
         alignment: Alignment.center,

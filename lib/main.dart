@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:socialapp/pages/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       title: "Social network app",
       debugShowCheckedModeBanner: false,
-      home: Text("Hello world"),
+      home: const Home(),
     );
   }
 }

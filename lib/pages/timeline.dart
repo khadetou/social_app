@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:socialapp/widgets/header.dart';
+import 'package:socialapp/widgets/progress.dart';
 
 class TimeLine extends StatefulWidget {
   const TimeLine({Key? key}) : super(key: key);
@@ -13,7 +14,7 @@ class _TimeLineState extends State<TimeLine> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: header(isAppTitle: true),
-      body: const Text("TimeLine"),
+      body: circularProgress(),
     );
   }
 }

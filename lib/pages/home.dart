@@ -90,27 +90,28 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("FireStore app"),
-      ),
-      body: StreamBuilder(
-        stream: firestoreDb,
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return const CircularProgressIndicator();
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (BuildContext context, int index) {
-                return const Text("items");
-              },
-            );
-          }
-        },
-      ),
-    );
+    // return Scaffold(
+    //   appBar: AppBar(
+    //     title: const Text("FireStore app"),
+    //   ),
+    //   body: StreamBuilder(
+    //     stream: firestoreDb,
+    //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+    //       print(snapshot);
+    //       if (!snapshot.hasData) {
+    //         return const CircularProgressIndicator();
+    //       } else {
+    //         return ListView.builder(
+    //           itemCount: snapshot.data!.docs.length,
+    //           itemBuilder: (BuildContext context, int index) {
+    //             return Text(snapshot.data!.docs[index]["firstname"]);
+    //           },
+    //         );
+    //       }
+    //     },
+    //   ),
+    // );
 
-    // return _isAuth ? buildAuthScreen() : buildUnAuthScreen();
+    return _isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }

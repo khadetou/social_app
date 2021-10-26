@@ -1,7 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:socialapp/data/data.dart';
-import "package:cloud_firestore/cloud_firestore.dart";
+import 'package:socialapp/pages/activity_feed.dart';
+import 'package:socialapp/pages/profile.dart';
+import 'package:socialapp/pages/search.dart';
+import 'package:socialapp/pages/timeline.dart';
+import 'package:socialapp/pages/upload.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 
@@ -14,11 +19,14 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool _isAuth = false;
-  var firestoreDb = FirebaseFirestore.instance.collection("users").snapshots();
+  PageController? pageController;
+  int pageIndex = 0;
 
   @override
   void initState() {
     super.initState();
+
+    pageController = PageController();
     //Detects if user signs in
     googleSignIn.onCurrentUserChanged.listen(
       (account) {
@@ -37,6 +45,12 @@ class _HomeState extends State<Home> {
       // ignore: avoid_print
       print("Error signing in: $err");
     });
+  }
+
+  @override
+  void dispose() {
+    pageController!.dispose();
+    super.dispose();
   }
 
   handleSignIn(GoogleSignInAccount? account) {
@@ -59,10 +73,54 @@ class _HomeState extends State<Home> {
     googleSignIn.signOut();
   }
 
+  onPageChanged(int pageIndex) {
+    setState(() {
+      this.pageIndex = pageIndex;
+    });
+  }
+
+  onTap(int pageIndex) {
+    pageController!.jumpToPage(
+      pageIndex,
+    );
+  }
+
   Widget buildAuthScreen() {
-    return ElevatedButton(
-      onPressed: logout,
-      child: const Text("Logout"),
+    return Scaffold(
+      body: PageView(
+        children: const <Widget>[
+          TimeLine(),
+          ActivityFeed(),
+          Upload(),
+          Search(),
+          Profile()
+        ],
+        controller: pageController,
+        onPageChanged: onPageChanged,
+        physics: const NeverScrollableScrollPhysics(),
+      ),
+      bottomNavigationBar: CupertinoTabBar(
+        currentIndex: pageIndex,
+        onTap: onTap,
+        activeColor: Theme.of(context).primaryColor,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.whatshot),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_active),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.photo_camera, size: 35.0),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+          ),
+        ],
+      ),
     );
   }
 
@@ -113,28 +171,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: const Text("FireStore app"),
-    //   ),
-    //   body: StreamBuilder(
-    //     stream: firestoreDb,
-    //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-    //       print(snapshot);
-    //       if (!snapshot.hasData) {
-    //         return const CircularProgressIndicator();
-    //       } else {
-    //         return ListView.builder(
-    //           itemCount: snapshot.data!.docs.length,
-    //           itemBuilder: (BuildContext context, int index) {
-    //             return Text(snapshot.data!.docs[index]["firstname"]);
-    //           },
-    //         );
-    //       }
-    //     },
-    //   ),
-    // );
-
     return _isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }

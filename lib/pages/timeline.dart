@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:socialapp/widgets/header.dart';
 
 class TimeLine extends StatefulWidget {
   const TimeLine({Key? key}) : super(key: key);
@@ -10,6 +11,9 @@ class TimeLine extends StatefulWidget {
 class _TimeLineState extends State<TimeLine> {
   @override
   Widget build(BuildContext context) {
-    return const Text("TimeLine");
+    return Scaffold(
+      appBar: header(),
+      body: const Text("TimeLine"),
+    );
   }
 }

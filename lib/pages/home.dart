@@ -19,28 +19,51 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    googleSignIn.onCurrentUserChanged.listen((account) {
-      print("this is the $account");
-      if (account != null) {
-        print("User signed in $account");
-        setState(() {
-          _isAuth = true;
-        });
-      } else {
-        setState(() {
-          print("Sign in failed : $account");
-          _isAuth = false;
-        });
-      }
+    //Detects if user signs in
+    googleSignIn.onCurrentUserChanged.listen(
+      (account) {
+        handleSignIn(account);
+      },
+      onError: (err) {
+        // ignore: avoid_print
+        print("Error signing in: $err");
+      },
+    );
+
+    //ReAuthenticate user when app is opened
+    googleSignIn.signInSilently(suppressErrors: false).then((account) {
+      handleSignIn(account);
+    }).catchError((err) {
+      // ignore: avoid_print
+      print("Error signing in: $err");
     });
+  }
+
+  handleSignIn(GoogleSignInAccount? account) {
+    if (account != null) {
+      setState(() {
+        _isAuth = true;
+      });
+    } else {
+      setState(() {
+        _isAuth = false;
+      });
+    }
   }
 
   login() {
     googleSignIn.signIn();
   }
 
+  logout() {
+    googleSignIn.signOut();
+  }
+
   Widget buildAuthScreen() {
-    return const Text("Authenticated");
+    return ElevatedButton(
+      onPressed: logout,
+      child: const Text("Logout"),
+    );
   }
 
   Widget buildUnAuthScreen() {

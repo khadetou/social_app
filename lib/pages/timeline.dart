@@ -12,7 +12,7 @@ class _TimeLineState extends State<TimeLine> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: header(),
+      appBar: header(isAppTitle: true),
       body: const Text("TimeLine"),
     );
   }

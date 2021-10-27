@@ -1,18 +1,22 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:socialapp/data/data.dart';
+import 'package:socialapp/models/user.dart';
 import 'package:socialapp/pages/activity_feed.dart';
 import 'package:socialapp/pages/create_account.dart';
 import 'package:socialapp/pages/profile.dart';
 import 'package:socialapp/pages/search.dart';
-import 'package:socialapp/pages/timeline.dart';
+// import 'package:socialapp/pages/timeline.dart';
 import 'package:socialapp/pages/upload.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 final userRef = FirebaseFirestore.instance.collection("users");
 final DateTime timestamp = DateTime.now();
+User? currentUser;
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -37,7 +41,6 @@ class _HomeState extends State<Home> {
         handleSignIn(account);
       },
       onError: (err) {
-        // ignore: avoid_print
         print("Error signing in: $err");
       },
     );
@@ -46,7 +49,6 @@ class _HomeState extends State<Home> {
     googleSignIn.signInSilently(suppressErrors: false).then((account) {
       handleSignIn(account);
     }).catchError((err) {
-      // ignore: avoid_print
       print("Error signing in: $err");
     });
   }
@@ -74,7 +76,7 @@ class _HomeState extends State<Home> {
   createUser() async {
     //1°) Check if user exists in users collextion in database according to their id.
     final GoogleSignInAccount? user = googleSignIn.currentUser;
-    final DocumentSnapshot doc = await userRef.doc(user!.id).get();
+    DocumentSnapshot doc = await userRef.doc(user!.id).get();
     if (!doc.exists) {
       // 2°) If the user doesn't exist, then we want to take them to the create account page.
       final username = await Navigator.push(
@@ -85,16 +87,22 @@ class _HomeState extends State<Home> {
       );
       //3°)get username from create account, use it to make new document in users collection.
 
-      userRef.doc(user.id).set({
-        "id": user.id,
-        "username": username,
-        "photoUrl": user.photoUrl,
-        "email": user.email,
-        "displayName": user.displayName,
-        "bio": "",
-        "timestamp": timestamp
-      });
+      userRef.doc(user.id).set(
+        {
+          "id": user.id,
+          "username": username,
+          "photoUrl": user.photoUrl,
+          "email": user.email,
+          "displayName": user.displayName,
+          "bio": "",
+          "timestamp": timestamp
+        },
+      );
+      doc = await userRef.doc(user.id).get();
     }
+    currentUser = User.fromDocument(doc);
+    print(currentUser);
+    print(currentUser!.username);
   }
 
   login() {

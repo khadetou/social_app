@@ -17,19 +17,37 @@ class _TimeLineState extends State<TimeLine> {
   var firestoreDb = FirebaseFirestore.instance.collection("users").snapshots();
   @override
   void initState() {
-    // getUsers();
-    getUserById();
+    getUsers();
+    // getUserById();
     super.initState();
   }
 
 //BEST APPROCH USING THE ASYNC AWAIT
-  getUserById() async {
-    const String id = "Lg3xPylFz9J0rz5xAS97";
 
-    final DocumentSnapshot doc = await userRef.doc(id).get();
-    print(doc.data());
-    print(doc.exists);
+//GET ALL USERS
+
+  getUsers() async {
+    final QuerySnapshot snapshot = await userRef
+        .where("username", isEqualTo: "khadetou")
+        .where("postsCount", isLessThan: 3)
+        .get();
+    for (var doc in snapshot.docs) {
+      print(doc.data());
+    }
   }
+
+//GET USER BY ID
+
+  // getUserById() async {
+  //   const String id = "Lg3xPylFz9J0rz5xAS97";
+
+  //   final DocumentSnapshot doc = await userRef.doc(id).get();
+  //   print(doc.data());
+  //   print(doc.exists);
+  // }
+
+  /// ---------------------------------------- */
+//Then catch method
 
   // getUserById() {
   //   const String id = "Lg3xPylFz9J0rz5xAS97";

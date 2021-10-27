@@ -14,10 +14,11 @@ class TimeLine extends StatefulWidget {
 }
 
 class _TimeLineState extends State<TimeLine> {
+  List<dynamic> users = [];
   var firestoreDb = FirebaseFirestore.instance.collection("users").snapshots();
   @override
   void initState() {
-    getUsers();
+    // getUsers();
     // getUserById();
     super.initState();
   }
@@ -25,16 +26,16 @@ class _TimeLineState extends State<TimeLine> {
 //BEST APPROCH USING THE ASYNC AWAIT
 
 //GET ALL USERS
-
-  getUsers() async {
-    final QuerySnapshot snapshot = await userRef
-        .where("username", isEqualTo: "khadetou")
-        .where("postsCount", isLessThan: 3)
-        .get();
-    for (var doc in snapshot.docs) {
-      print(doc.data());
-    }
-  }
+  // getUsers() async {
+  //compound queries
+  //   final QuerySnapshot snapshot = await userRef
+  //       .where("username", isEqualTo: "khadetou")
+  //       .where("postsCount", isLessThan: 3)
+  //       .get();
+  //   for (var doc in snapshot.docs) {
+  //     print(doc.data());
+  //   }
+  // }
 
 //GET USER BY ID
 
@@ -77,21 +78,22 @@ class _TimeLineState extends State<TimeLine> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: header(isAppTitle: true),
-      body: StreamBuilder(
-        stream: firestoreDb,
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+      body: StreamBuilder<QuerySnapshot>(
+        stream: userRef.snapshots(),
+        builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return circularProgress();
           }
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Center(
-                child: Text(
-                  snapshot.data!.docs[index]["username"],
-                ),
-              );
-            },
+          // final List<Text> children = snapshot.data!.docs
+          //     .map((doc) => Text(doc["username"]))
+          //     .toList();
+          return SizedBox(
+            child: ListView.builder(
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Text(snapshot.data!.docs[index]["username"]);
+              },
+            ),
           );
         },
       ),

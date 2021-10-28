@@ -132,7 +132,9 @@ class _HomeState extends State<Home> {
           // TimeLine(),
           ElevatedButton(onPressed: logout, child: const Text("Log out")),
           const ActivityFeed(),
-          const Upload(),
+          Upload(
+            currentUser: currentUser as User,
+          ),
           const Search(),
           const Profile()
         ],

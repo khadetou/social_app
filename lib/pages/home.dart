@@ -101,8 +101,6 @@ class _HomeState extends State<Home> {
       doc = await userRef.doc(user.id).get();
     }
     currentUser = User.fromDocument(doc);
-    print(currentUser);
-    print(currentUser!.username);
   }
 
   login() {

@@ -147,6 +147,7 @@ class _UploadState extends State<Upload> {
     setState(() {
       fileType = null;
       file = null;
+      postId = const Uuid().v4();
       isUploading = false;
     });
   }

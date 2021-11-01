@@ -4,7 +4,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:socialapp/models/user.dart';
+import 'package:socialapp/widgets/progress.dart';
+import "package:image/image.dart" as Img;
+import 'package:uuid/uuid.dart';
+import "package:firebase_storage/firebase_storage.dart";
+
+import 'home.dart';
 
 class Upload extends StatefulWidget {
   const Upload({
@@ -18,8 +25,17 @@ class Upload extends StatefulWidget {
 }
 
 class _UploadState extends State<Upload> {
+  ///-----------------------------VARIABLES------------------------*/
+  TextEditingController locationController = TextEditingController();
+  TextEditingController captionController = TextEditingController();
   PickedFile? file;
+  File? fileType;
+  bool isUploading = false;
+  String postId = const Uuid().v4();
 
+  ///--------------------------FUNTIONS---------------------------*/
+  ///
+  // HANDLETAKEPHOTO
   handleTakePhoto() async {
     Navigator.pop(context);
     PickedFile file = await ImagePicker.platform.pickImage(
@@ -28,20 +44,24 @@ class _UploadState extends State<Upload> {
       maxWidth: 960,
     ) as PickedFile;
     setState(() {
+      // this.fileType = File(file.path);
       this.file = file;
     });
   }
 
+  //HANDLECHOOSEFROMGALLERY
   handleChooseFromGellery() async {
     Navigator.pop(context);
     PickedFile file = await ImagePicker.platform
         .pickImage(source: ImageSource.gallery) as PickedFile;
 
     setState(() {
+      // this.fileType = File(file.path);
       this.file = file;
     });
   }
 
+//SELECTIMAGE
   selectImage(parentContext) {
     return showDialog(
         context: parentContext,
@@ -66,6 +86,73 @@ class _UploadState extends State<Upload> {
         });
   }
 
+//COMPRESSIMAGE
+  compressImage() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Img.Image imageFile =
+        Img.decodeImage(File(file!.path).readAsBytesSync()) as Img.Image;
+
+    final compressedImageFile = File("$path/img_$postId.jpg")
+      ..writeAsBytesSync(Img.encodeJpg(imageFile, quality: 85));
+
+    setState(() {
+      fileType = compressedImageFile;
+    });
+  }
+
+//UPLOADIMAGE
+  Future<String> uploadImage(imageFile) async {
+    UploadTask uploadTask =
+        storageRef.child("post_$postId.jpg").putFile(imageFile);
+    TaskSnapshot storageSnap = await uploadTask;
+
+    String downloadUrl = await storageSnap.ref.getDownloadURL();
+
+    return downloadUrl;
+  }
+
+  // CREATE POST IN FIRESTORE
+  createPostInFirestore({
+    required String mediaUrl,
+    required String location,
+    required String description,
+  }) {
+    postRef.doc(widget.currentUser.id).collection("userPosts").doc(postId).set({
+      "postId": postId,
+      "ownerId": widget.currentUser.id,
+      "username": widget.currentUser.username,
+      "mediaUrl": mediaUrl,
+      "description": description,
+      "location": location,
+      "timestamp": timestamp,
+      "likes": {}
+    });
+  }
+
+//HANDLE SUMBIT
+  handleSubmit() async {
+    setState(() {
+      isUploading = true;
+    });
+    await compressImage();
+    String mediaUrl = await uploadImage(fileType);
+    createPostInFirestore(
+      mediaUrl: mediaUrl,
+      location: locationController.text,
+      description: captionController.text,
+    );
+    captionController.clear();
+    locationController.clear();
+    setState(() {
+      fileType = null;
+      file = null;
+      isUploading = false;
+    });
+  }
+
+  ///-----------------------------------------------------*/
+  /// BUILD SPLASH SCREEN */
   Container buildSplashScreen() {
     return Container(
       color: Theme.of(context).colorScheme.secondary.withOpacity(0.6),
@@ -103,10 +190,12 @@ class _UploadState extends State<Upload> {
 
   clearImage() {
     setState(() {
+      fileType = null;
       file = null;
     });
   }
 
+  /// BUILD UPLOAD FORM  */
   Scaffold buildUploadForm() {
     return Scaffold(
       appBar: AppBar(
@@ -126,7 +215,7 @@ class _UploadState extends State<Upload> {
         ),
         actions: [
           TextButton(
-            onPressed: () => print("pressed"),
+            onPressed: isUploading ? null : () => handleSubmit(),
             child: const Text(
               "Post",
               style: TextStyle(
@@ -140,6 +229,7 @@ class _UploadState extends State<Upload> {
       ),
       body: ListView(
         children: [
+          isUploading ? linearProgress() : const Text(""),
           SizedBox(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
@@ -167,21 +257,26 @@ class _UploadState extends State<Upload> {
                 widget.currentUser.photoUrl,
               ),
             ),
-            title: const SizedBox(
-                width: 250.0,
-                child: TextField(
-                    decoration: InputDecoration(
-                  hintText: "Write a caption...",
-                  border: InputBorder.none,
-                ))),
-          ),
-          const Divider(),
-          const ListTile(
-            leading: Icon(Icons.pin_drop, color: Colors.orange, size: 35.0),
             title: SizedBox(
               width: 250.0,
               child: TextField(
-                decoration: InputDecoration(
+                controller: captionController,
+                decoration: const InputDecoration(
+                  hintText: "Write a caption...",
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          const Divider(),
+          ListTile(
+            leading:
+                const Icon(Icons.pin_drop, color: Colors.orange, size: 35.0),
+            title: SizedBox(
+              width: 250.0,
+              child: TextField(
+                controller: locationController,
+                decoration: const InputDecoration(
                   hintText: "Where was this photo taken",
                   border: InputBorder.none,
                 ),

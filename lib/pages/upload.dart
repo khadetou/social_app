@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:socialapp/models/user.dart';
@@ -10,6 +11,7 @@ import 'package:socialapp/widgets/progress.dart';
 import "package:image/image.dart" as Img;
 import 'package:uuid/uuid.dart';
 import "package:firebase_storage/firebase_storage.dart";
+import "package:geocoding/geocoding.dart";
 
 import 'home.dart';
 
@@ -290,7 +292,7 @@ class _UploadState extends State<Upload> {
             alignment: Alignment.center,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.my_location, color: Colors.white),
-              onPressed: () => print("get user location"),
+              onPressed: getUserLocation,
               label: const Text(
                 "User Current Location",
                 style: TextStyle(
@@ -308,6 +310,25 @@ class _UploadState extends State<Upload> {
         ],
       ),
     );
+  }
+
+  /// GET USER LOCATION FUNCTION  */
+
+  getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    Placemark placemark = placemarks[0];
+    String completeAddress =
+        'COMPLETE ADDRESS: ${placemark.subThoroughfare} ${placemark.thoroughfare} ${placemark.subLocality} ${placemark.locality} ${placemark.subAdministrativeArea} ${placemark.administrativeArea} ${placemark.postalCode} ${placemark.country}';
+
+    print(completeAddress);
+
+    String formattedAddress = '${placemark.locality} ${placemark.country}';
+
+    locationController.text = formattedAddress;
   }
 
   @override
